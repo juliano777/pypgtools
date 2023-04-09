@@ -39,8 +39,8 @@ def get_onerous_processes(
     memory_percent: float = 0,  # Memory percentage to be considered
     order_by: str = 'cpu',  # Order by percentage of CPU or memory
     reverse: bool = True,  # Descending order
-    
-) -> list:
+    intvl_calls: float = .03  # Interval (s) between function calls
+) -> tuple:
 
     '''
     Function that returns a list of onerous process according to criteria
@@ -65,28 +65,33 @@ def get_onerous_processes(
 
     # Iterate over eligible processes
     for pid in ep:
-        proc = Process(pid)
-        cpu_p = proc.cpu_percent(.03)
-        mem_p = proc.memory_percent()
-        exe = proc.exe()
+        proc = Process(pid)  # Process data
+        cpu_p = proc.cpu_percent(intvl_calls)  # Current CPU percentage
+        mem_p = proc.memory_percent()  # Current memory percentage
 
+        # Data dictionary
         d = {
              'pid': pid,
              'cpu_percent': cpu_p,
-             'memory_percent': mem_p
+             'memory_percent': mem_p,
              }
-              
+
+        # If the percentage of CPU and memory are greater than stipulated
+        # in parameters, add the data dictionary to the process list.
         if cpu_p >= cpu_percent and mem_p >= memory_percent:
             processes.append(d)
 
+    # Sorted processes ordered by CPU or memory and reverse or not.
     sorted_processes = sorted(
         processes,
         key=lambda k: k[order_by],
         reverse=reverse,
         )
-    
+
+    # PID list
     pids = [i['pid'] for i in sorted_processes]
 
+    # Return PID list as tuple
     return tuple(pids)
 
 # ------------------------------------------------------------------------------
